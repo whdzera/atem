@@ -6,7 +6,6 @@ Dir[File.join(__dir__, 'controllers/*.rb')].sort.each do |file|
   require_relative file
 end
 
-
 TOKEN     = ENV.fetch('token_discord', nil)           
 SERVER_ID = ENV.fetch('server_id_discord', nil)       
 CLIENT_ID = ENV.fetch('client_id_discord', nil) 
@@ -24,16 +23,17 @@ begin
   )
 
   # Register global slash commands (add 'server_id: SERVER_ID' for development)
-  bot.register_application_command(:info, 'Information about the bot', server_id: SERVER_ID)
+  bot.register_application_command(:info, 'Information bot', server_id: SERVER_ID)
   bot.register_application_command(:help, 'Help command', server_id: SERVER_ID)
   bot.register_application_command(:ping, 'Check bot latency', server_id: SERVER_ID)
+  bot.register_application_command(:random, 'Get a random Yu-Gi-Oh card', server_id: SERVER_ID)
   bot.register_application_command(:search, 'Search Yu-Gi-Oh card by name', server_id: SERVER_ID) do |cmd|
-    cmd.string('name', 'Card name to search', required: true)
+    cmd.string('name', 'input Card name', required: true)
   end
 
   # Bot ready event
   bot.ready do |_event|
-    bot.game = 'Bot'
+    bot.game = '/search <card_name>'
     logger.info "[#{Process.pid} #{Time.now}] Running Bot - Discord"
   end
 
@@ -65,6 +65,66 @@ begin
     event.respond(content: "Error calculating ping: #{e.message}")
   end
 
+  # /random
+  bot.application_command(:random) do |event|
+    event.defer(ephemeral: false) 
+
+    card_data    = Random.card
+    card_name    = card_data['name']
+    link         = card_data['card_url']
+    type_info    = card_data['color']
+    ban_ocg      = card_data['ban_ocg'] || '-'
+    ban_tcg      = card_data['ban_tcg'] || '-'
+    suffix       = card_data['suffix'] || ''
+    type         = card_data['type'] || '-'
+    race         = card_data['race'] || '-'
+    attribute    = card_data['attribute'] || '-'
+    level        = card_data['level'] || '-'
+    desc         = card_data['desc'] || '-'
+    atk          = card_data['atk'] || 0
+    def_val      = card_data['def'] || 0
+    pict         = card_data['image_small']
+
+    if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
+      event.edit_response do |builder|
+        builder.content = ''
+        builder.add_embed do |embed|
+          embed.colour = type_info.delete_prefix('#').to_i(16)
+          embed.title = card_name
+          embed.url   = link if link
+          embed.add_field(
+            name: '',
+            value: "**Limit :** **OCG:** #{Banlist.scan(card_data['ban_ocg'])} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{type}"
+          )
+          embed.add_field(name: 'Description', value: desc)
+          embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
+        end
+      end  
+          
+    else
+      event.edit_response do |builder|
+        builder.content = ''
+        builder.add_embed do |embed|
+          embed.colour = type_info.delete_prefix('#').to_i(16)
+          embed.title = card_name
+          embed.url   = link if link
+          embed.add_field(
+            name: '',
+            value: "**Limit :** **OCG:** #{Banlist.scan(card_data['ban_ocg'])} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
+          )
+          embed.add_field(name: 'Description', value: desc)
+          embed.add_field(name: 'ATK', value: atk.to_s, inline: true)
+          embed.add_field(name: 'DEF', value: def_val.to_s, inline: true)
+          embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
+        end
+      end
+    end
+
+    logger.info "Command used by #{event.user.username}: /random"
+  rescue StandardError => e
+    logger.error "Error occurred while processing /random command: #{e.message}"
+  end
+
   # /search <name>
   bot.application_command(:search) do |event|
     input = begin
@@ -74,7 +134,7 @@ begin
     end
 
     if input.nil?
-      event.respond(content: "Gunakan format: `/yugioh name:<nama_kartu>`")
+      event.respond(content: "Use the format: /yugioh name:<card_name>")
       next
     end
 
@@ -85,10 +145,12 @@ begin
     if card_data && card_data["name"]
       card_name    = card_data['name']
       link         = card_data['card_url']
-      type_info    = { color: 0x3498db }
+      type_info    = card_data['color']
       ban_ocg      = card_data['ban_ocg'] || '-'
       ban_tcg      = card_data['ban_tcg'] || '-'
+      suffix       = card_data['suffix'] || ''
       type         = card_data['type'] || '-'
+      race         = card_data['race'] || '-'
       attribute    = card_data['attribute'] || '-'
       level        = card_data['level'] || '-'
       desc         = card_data['desc'] || '-'
@@ -96,24 +158,42 @@ begin
       def_val      = card_data['def'] || 0
       pict         = card_data['image_small']
 
-      event.edit_response do |builder|
-        builder.content = ''
-        builder.add_embed do |embed|
-          embed.colour = type_info[:color]
-          embed.title = card_name
-          embed.url   = link if link
-          embed.add_field(
-            name: '',
-            value: "**Limit :** **OCG:** #{ban_ocg} | **TCG:** #{ban_tcg}\n**Type:** #{type}\n**Attribute:** #{attribute}\n**Level:** #{level}"
-          )
-          embed.add_field(name: 'Description', value: desc)
-          embed.add_field(name: 'ATK', value: atk.to_s, inline: true)
-          embed.add_field(name: 'DEF', value: def_val.to_s, inline: true)
-          embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
+      if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
+        event.edit_response do |builder|
+          builder.content = ''
+          builder.add_embed do |embed|
+            embed.colour = type_info.delete_prefix('#').to_i(16)
+            embed.title = card_name
+            embed.url   = link if link
+            embed.add_field(
+              name: '',
+              value: "**Limit :** **OCG:** #{Banlist.scan(card_data['ban_ocg'])} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{type}"
+            )
+            embed.add_field(name: 'Description', value: desc)
+            embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
+          end
+        end  
+      
+      else
+        event.edit_response do |builder|
+          builder.content = ''
+          builder.add_embed do |embed|
+            embed.colour = type_info.delete_prefix('#').to_i(16)
+            embed.title = card_name
+            embed.url   = link if link
+            embed.add_field(
+              name: '',
+              value: "**Limit :** **OCG:** #{Banlist.scan(card_data['ban_ocg'])} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
+            )
+            embed.add_field(name: 'Description', value: desc)
+            embed.add_field(name: 'ATK', value: atk.to_s, inline: true)
+            embed.add_field(name: 'DEF', value: def_val.to_s, inline: true)
+            embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
+          end
         end
       end
     else
-      event.edit_response(content: "Tidak ditemukan kartu dengan nama `#{input}`")
+      event.edit_response(content: "No card found with the name #{input}")
     end
 
     logger.info "Command used by #{event.user.username}: /yugioh #{input}"
