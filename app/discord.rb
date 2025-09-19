@@ -28,7 +28,10 @@ begin
   bot.register_application_command(:ping, 'Check bot latency', server_id: SERVER_ID)
   bot.register_application_command(:random, 'Get a random Yu-Gi-Oh card', server_id: SERVER_ID)
   bot.register_application_command(:search, 'Search Yu-Gi-Oh card by name', server_id: SERVER_ID) do |cmd|
-    cmd.string('name', 'input Card name', required: true)
+    cmd.string('name', 'input card name', required: true)
+  end
+  bot.register_application_command(:art, 'Search art Yu-Gi-Oh card by name', server_id: SERVER_ID) do |cmd|
+    cmd.string('name', 'input card name', required: true)
   end
 
   # Bot ready event
@@ -196,7 +199,50 @@ begin
       event.edit_response(content: "No card found with the name #{input}")
     end
 
-    logger.info "Command used by #{event.user.username}: /yugioh #{input}"
+    logger.info "Command used by #{event.user.username}: /search #{input}"
+  rescue StandardError => e
+    logger.error "Error occurred while processing /search command: #{e.message}"
+  end
+
+  # /art <name>
+  bot.application_command(:art) do |event|
+    input = begin
+      event.options['name']
+    rescue StandardError
+      nil
+    end
+
+    if input.nil?
+      event.respond(content: "Use the format: /yugioh name:<card_name>")
+      next
+    end
+
+    event.defer(ephemeral: false) 
+
+    card_data = Search.name(input)
+    type_info = card_data['color']
+    pict = card_data['image_small']
+
+    if pict.nil? || pict.empty?
+      event.edit_response(
+        embeds: [
+          {
+            color: 0xff1432,
+            description: "**'#{card_name}' not found**",
+            image: {
+              url: 'https://i.imgur.com/lPSo3Tt.jpg'
+            }
+          }
+        ]
+      )
+    else
+      event.edit_response(embeds: [{ 
+                            color: type_info.delete_prefix('#').to_i(16), image: { url: pict } 
+                          }])
+    end
+    logger.info "Command used by #{event.user.username}: /art #{input}"
+  rescue StandardError => e
+    logger.error "Error occurred while processing /art command: #{e.message}"
   end
 
   bot.run

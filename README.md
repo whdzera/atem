@@ -1,81 +1,91 @@
-## Ruby Discord & Telegram Bot Boilerplate
+<img align="center" width="150" src="https://i.imgur.com/Fgolqn1.png" />
 
-A boilerplate project for running Discord and Telegram bots together in a single Ruby application.
-Perfect starting point if you want a clean structure, environment setup, and testing out of the box.
+![Lang](https://img.shields.io/badge/language-ruby-red)
+![Lang](https://img.shields.io/badge/language-javascript-yellow)
 
-## Structure
+# Atem Bot
 
-<pre>
-├── app/ # Bot logic (Discord, Telegram, controllers)
-├── bin/ # Executable entry point scripts
-├── config/ # Configuration, including example .env
-├── spec/ # RSpec test suite
-├── Gemfile # Project dependencies
-├── Rakefile # Build/test/automation tasks
-├── .rubocop.yml # Code linting rules
-</pre>
+A discord, Telegram, and Whatsapp bot for search yugioh card, written in ruby and javascript.
 
-## Setup
+APIs from Ygoprodeck
 
-#### 1. Clone the repo
+### Website
 
-```
-git clone https://github.com/spellbooks/ruby-discord-telegram-bot-boilerplate.git
-cd ruby-discord-telegram-bot-boilerplate
-```
+https://atem.whdzera.my.id/
 
-#### 2. Install dependencies
+### Usage
 
-```
-bundle install
-```
+| Commands          | Discord         | Telegram        | Whatsapp        |
+| ----------------- | --------------- | --------------- | --------------- |
+| information       | `/info`         | `/info`         | `:atem`         |
+| ping              | `/ping`         | `/ping`         | `:ping`         |
+| random card       | `/random`       | `/random`       | `:random`       |
+| list card         | `/list`         | `/list`         | `:list`         |
+| image card        | `/card`         | `/card`         | `/card`         |
+| search card       | `/search`       | `/search`       | `:search`       |
+| quick search card | `::card_name::` | `::card_name::` | `::card_name::` |
 
-#### 3. Copy .env file
+### View
 
-```
-cp config/.env.example .env
-```
+![](https://i.imgur.com/QcedrlV.png)
 
-#### 4. Configure environment variables
+<img align="center" width="350" src="https://i.imgur.com/SS9VM9L.gif" />
 
-Edit .env and set your credentials:
+### Prerequisite
 
-`TOKEN_DISCORD`, `CLIENT_ID_DISCORD`
+- Ruby 2.7.0^
+- Node 18.20.8^
 
-`TOKEN_TELEGRAM`
-
-`SERVER_ID_DISCORD` (optional, for Discord dev testing)
-
-#### 5. Run Bot
+install all dependency
 
 ```
-./bin/START
+bundle install && npm install
 ```
 
-#### 6. Single Run Bot
+### Running and Tools
+
+Run Discord bot only
 
 ```
-rake discord
+rake run dc=yes
 ```
 
-or
+Run WhatsApp and Telegram bots
 
 ```
-rake telegram
+rake run wa=yes tele=yes
 ```
 
-## Unit Test
-
-RSpec is preconfigured in the spec/ directory. Run tests with:
+Run all bots
 
 ```
-bundle exec rspec
+rake run dc=yes wa=yes tele=yes
 ```
 
-## Summary
+kill process bot
 
-| Purpose            | Details                                          |
-| ------------------ | ------------------------------------------------ |
-| Quick start        | Ready-to-use project structure with `.env` setup |
-| Modular & testable | Commands separated, testable with RSpec          |
-| Scalable           | Easy to add new commands and integrations        |
+```
+rake kill
+```
+
+unit test
+
+```
+rake test
+```
+
+## Contributing
+
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature-branch`
+3. Make your changes and commit them: `git commit -m 'Add new feature'`
+4. Push to the branch: `git push origin feature-branch`
+5. Create a pull request.
+
+## License
+
+This project is licensed under the Apache License.
+
+## Contact
+
+For any questions or suggestions, feel free to open an issue on GitHub.
