@@ -1,0 +1,3 @@
+config/.env
+Gemfile.lock
+.rubocop_todo.yml

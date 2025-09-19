@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require 'logger'
+require 'dotenv'
+
+# Set up logging
+logger = Logger.new($stdout)
+logger.level = Logger::INFO
+
+# Load environment variables
+Dotenv.load(File.expand_path('../config/.env', __dir__))
+
+# Method to start a bot in a new thread
+def start_bot(name, path, logger)
+  Thread.new do
+    logger.info "[#{Time.now}] Starting #{name} bot in thread #{Thread.current.object_id}"
+    load File.expand_path(path, __dir__)
+  rescue StandardError => e
+    logger.error "[#{name} Error] #{e.class}: #{e.message}"
+    logger.error e.backtrace.join("\n")
+  end
+end
+
+# Start both bots in separate threads
+telegram_thread = start_bot('Telegram', '../app/telegram.rb', logger)
+discord_thread = start_bot('Discord', '../app/discord.rb', logger)
+
+# Keep the main thread alive and handle interrupts
+begin
+  logger.info 'Both bots are running. Press Ctrl+C to stop.'
+  loop do
+    sleep 1
+  end
+rescue Interrupt
+  logger.info 'Shutting down bots...'
+  Thread.list.each { |thread| thread.kill unless thread == Thread.main }
+  logger.info 'Bots stopped successfully.'
+end
