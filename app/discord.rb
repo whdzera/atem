@@ -6,15 +6,15 @@ Dir[File.join(__dir__, 'controllers/*.rb')].sort.each do |file|
   require_relative file
 end
 
-TOKEN     = ENV.fetch('token_discord')           
-SERVER_ID = ENV.fetch('server_id_discord')       
-CLIENT_ID = ENV.fetch('client_id_discord') 
+TOKEN     = ENV.fetch('token_discord')
+SERVER_ID = ENV.fetch('server_id_discord')
+CLIENT_ID = ENV.fetch('client_id_discord')
 logger = Logger.new($stdout)
 logger.level = Logger::INFO
 
 begin
   logger.info "[#{Time.now}] Starting Atem Discord Bot..."
-  
+
   bot = Discordrb::Bot.new(
     token: TOKEN,
     client_id: CLIENT_ID,
@@ -49,34 +49,32 @@ begin
   # Bot Mention
   bot.mention do |event|
     user = event.user
-    message = event.message
-
     event.respond("Hello #{user.mention}, you can use the slash command `/help` to see the available commands!")
   end
 
-  # /info 
+  # /info
   bot.application_command(:info) do |event|
     response = General.info
     event.respond(content: response)
     logger.info "Command used by #{event.user.username}: /info"
   end
-  
-  # /info 
+
+  # /info
   bot.application_command(:help) do |event|
     response = General.help
     event.respond(content: response)
     logger.info "Command used by #{event.user.username}: /help"
   end
 
-  # /Ping 
+  # /Ping
   bot.application_command(:ping) do |event|
     start_time = Time.now
     event.defer
 
     latency = Ping.calculate_latency(start_time)
-    
+
     event.edit_response(content: Ping.with_latency(latency))
-    
+
     logger.info "Command used by #{event.user.username}: /ping"
   rescue StandardError => e
     event.respond(content: "Error calculating ping: #{e.message}")
@@ -84,7 +82,7 @@ begin
 
   # /random
   bot.application_command(:random) do |event|
-    event.defer(ephemeral: false) 
+    event.defer(ephemeral: false)
 
     card_data    = Random.card
     card_name    = card_data['name']
@@ -111,13 +109,13 @@ begin
           embed.url   = link if link
           embed.add_field(
             name: '',
-            value: "**Limit :** **OCG:** #{Banlist.scan(card_data['ban_ocg'])} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{type}"
+            value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{type}"
           )
           embed.add_field(name: 'Description', value: desc)
           embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
         end
-      end  
-          
+      end
+
     else
       event.edit_response do |builder|
         builder.content = ''
@@ -127,7 +125,7 @@ begin
           embed.url   = link if link
           embed.add_field(
             name: '',
-            value: "**Limit :** **OCG:** #{Banlist.scan(card_data['ban_ocg'])} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
+            value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
           )
           embed.add_field(name: 'Description', value: desc)
           embed.add_field(name: 'ATK', value: atk.to_s, inline: true)
@@ -151,15 +149,15 @@ begin
     end
 
     if input.nil?
-      event.respond(content: "Use the format: /search name:<card_name>")
+      event.respond(content: 'Use the format: /search name:<card_name>')
       next
     end
 
-    event.defer(ephemeral: false) 
+    event.defer(ephemeral: false)
 
     card_data = Search.name(input)
 
-    if card_data && card_data["name"]
+    if card_data && card_data['name']
       card_name    = card_data['name']
       link         = card_data['card_url']
       type_info    = card_data['color']
@@ -184,13 +182,13 @@ begin
             embed.url   = link if link
             embed.add_field(
               name: '',
-              value: "**Limit :** **OCG:** #{Banlist.scan(card_data['ban_ocg'])} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{type}"
+              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{type}"
             )
             embed.add_field(name: 'Description', value: desc)
             embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
           end
-        end  
-      
+        end
+
       else
         event.edit_response do |builder|
           builder.content = ''
@@ -200,7 +198,7 @@ begin
             embed.url   = link if link
             embed.add_field(
               name: '',
-              value: "**Limit :** **OCG:** #{Banlist.scan(card_data['ban_ocg'])} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
+              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)}} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
             )
             embed.add_field(name: 'Description', value: desc)
             embed.add_field(name: 'ATK', value: atk.to_s, inline: true)
@@ -227,11 +225,11 @@ begin
     end
 
     if input.nil?
-      event.respond(content: "Use the format: /art name:<card_name>")
+      event.respond(content: 'Use the format: /art name:<card_name>')
       next
     end
 
-    event.defer(ephemeral: false) 
+    event.defer(ephemeral: false)
 
     card_data = Search.name(input)
     type_info = card_data['color']
@@ -247,8 +245,8 @@ begin
         ]
       )
     else
-      event.edit_response(embeds: [{ 
-                            color: type_info.delete_prefix('#').to_i(16), image: { url: pict } 
+      event.edit_response(embeds: [{
+                            color: type_info.delete_prefix('#').to_i(16), image: { url: pict }
                           }])
     end
     logger.info "Command used by #{event.user.username}: /art #{input}"
@@ -265,11 +263,11 @@ begin
     end
 
     if input.nil?
-      event.respond(content: "Use the format: /img name:<card_name>")
+      event.respond(content: 'Use the format: /img name:<card_name>')
       next
     end
 
-    event.defer(ephemeral: false) 
+    event.defer(ephemeral: false)
 
     card_data = Search.name(input)
     type_info = card_data['color']
@@ -285,8 +283,8 @@ begin
         ]
       )
     else
-      event.edit_response(embeds: [{ 
-                            color: type_info.delete_prefix('#').to_i(16), image: { url: pict } 
+      event.edit_response(embeds: [{
+                            color: type_info.delete_prefix('#').to_i(16), image: { url: pict }
                           }])
     end
     logger.info "Command used by #{event.user.username}: /img #{input}"
@@ -303,16 +301,16 @@ begin
     end
 
     if input.nil?
-      event.respond(content: "Use the format: /list name:<card_name>")
+      event.respond(content: 'Use the format: /list name:<card_name>')
       next
     end
 
     event.defer(ephemeral: false)
 
-    result = List.name(input, only: "name")
+    result = List.name(input, only: 'name')
 
-    if result && result["cards"].any?
-      cards = result["cards"].first(25) # Discord limit: max 25 options
+    if result && result['cards'].any?
+      cards = result['cards'].first(25) # Discord limit: max 25 options
 
       event.edit_response(
         content: "Select a card from **#{result['count']} results**:",
@@ -322,8 +320,8 @@ begin
             components: [
               {
                 type: 3, # Select Menu
-                custom_id: "card_select",
-                placeholder: "Choose a card",
+                custom_id: 'card_select',
+                placeholder: 'Choose a card',
                 options: cards.map do |card|
                   {
                     label: card[0..99], # max 100 chars
@@ -348,14 +346,14 @@ begin
   # /list search option
   bot.interaction_create do |event|
     data = event.interaction.data
-    next unless data && data["custom_id"] == "card_select"
+    next unless data && data['custom_id'] == 'card_select'
 
-    chosen_card = data["values"]&.first
+    chosen_card = data['values']&.first
     next unless chosen_card
 
     card_data = Search.name(chosen_card)
 
-    if card_data && card_data["name"]
+    if card_data && card_data['name']
       card_name    = card_data['name']
       link         = card_data['card_url']
       type_info    = card_data['color']
@@ -415,7 +413,6 @@ begin
   end
 
   bot.run
-
 rescue StandardError => e
   logger.error "[Unhandled Error] #{e.class}: #{e.message}"
   logger.error e.backtrace.join("\n")

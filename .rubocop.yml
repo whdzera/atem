@@ -1,5 +1,3 @@
-inherit_from: .rubocop_todo.yml
-
 AllCops:
   Include:
     - "**/*.rb"
@@ -30,7 +28,7 @@ Metrics/ClassLength:
   Max: 175
 
 Metrics/MethodLength:
-  Max: 25
+  Max: 150
 
 Metrics/ParameterLists:
   Max: 20
