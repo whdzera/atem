@@ -68,7 +68,6 @@ loop do
 
         card_data = Random.card
         card_name    = card_data['name']
-        link         = card_data['card_url']
         ban_ocg      = card_data['ban_ocg'] || '-'
         ban_tcg      = card_data['ban_tcg'] || '-'
         suffix       = card_data['suffix'] || ''
@@ -81,10 +80,20 @@ loop do
         def_val      = card_data['def'] || 0
         pict         = card_data['image_small']
 
-        response = {
-          image: pict,
-          message: "*#{card&.dig('name') || 'Unknown'}*\n#{card&.dig('desc') || '-'}"
-        }
+        response = if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
+                     {
+                       image: pict,
+                       message: "**#{card_name}**\n**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{type}\n\n#{desc}"
+                     }
+                   else
+                     {
+                       image: pict,
+                       message: "**#{card_name}**\n**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)}\n" \
+                                "**Type:** #{race} #{suffix}\n" \
+                                "**Attribute:** #{attribute}\n" \
+                                "**Level:** #{level}\n**ATK:** #{atk} **DEF:** #{def_val}\n\n#{desc}"
+                     }
+                   end
 
         bot.api.send_photo(
           chat_id: chat_id,
