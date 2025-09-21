@@ -1,3 +1,12 @@
 config/.env
 Gemfile.lock
 .rubocop_todo.yml
+node_modules
+*_sessions
+sessions
+baileys.log
+core.class.log
+db.json
+lib/
+*.qr.png
+package-lock.json
