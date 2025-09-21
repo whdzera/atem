@@ -90,15 +90,18 @@ begin
     type_info    = card_data['color']
     ban_ocg      = card_data['ban_ocg'] || '-'
     ban_tcg      = card_data['ban_tcg'] || '-'
+    ban_md       = card_data['ban_md'] || '-'
     suffix       = card_data['suffix'] || ''
     type         = card_data['type'] || '-'
     race         = card_data['race'] || '-'
     attribute    = card_data['attribute'] || '-'
     level        = card_data['level'] || '-'
+    linkval      = card_data['linkval'] || '-'
+    linkmarkers  = card_data['linkmarkers'] || '-'
     desc         = card_data['desc'] || '-'
     atk          = card_data['atk'] || 0
     def_val      = card_data['def'] || 0
-    pict         = card_data['image_small']
+    pict         = card_data['image'][0]['image_url_cropped']
 
     if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
       event.edit_response do |builder|
@@ -109,7 +112,23 @@ begin
           embed.url   = link if link
           embed.add_field(
             name: '',
-            value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{type}"
+            value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}"
+          )
+          embed.add_field(name: 'Description', value: desc)
+          embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
+        end
+      end
+
+    elsif ['Link Monster'].include?(type)
+      event.edit_response do |builder|
+        builder.content = ''
+        builder.add_embed do |embed|
+          embed.colour = type_info.delete_prefix('#').to_i(16)
+          embed.title = card_name
+          embed.url   = link if link
+          embed.add_field(
+            name: '',
+            value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)}} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Link Rating:** #{linkval}\n**Link Arrow:** #{Arrow.scan(linkmarkers)}"
           )
           embed.add_field(name: 'Description', value: desc)
           embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
@@ -125,7 +144,7 @@ begin
           embed.url   = link if link
           embed.add_field(
             name: '',
-            value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
+            value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
           )
           embed.add_field(name: 'Description', value: desc)
           embed.add_field(name: 'ATK', value: atk.to_s, inline: true)
@@ -163,15 +182,18 @@ begin
       type_info    = card_data['color']
       ban_ocg      = card_data['ban_ocg'] || '-'
       ban_tcg      = card_data['ban_tcg'] || '-'
+      ban_md       = card_data['ban_md'] || '-'
       suffix       = card_data['suffix'] || ''
       type         = card_data['type'] || '-'
       race         = card_data['race'] || '-'
       attribute    = card_data['attribute'] || '-'
       level        = card_data['level'] || '-'
+      linkval      = card_data['linkval'] || '-'
+      linkmarkers  = card_data['linkmarkers'] || '-'
       desc         = card_data['desc'] || '-'
       atk          = card_data['atk'] || 0
       def_val      = card_data['def'] || 0
-      pict         = card_data['image_small']
+      pict         = card_data['image'][0]['image_url_cropped']
 
       if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
         event.edit_response do |builder|
@@ -182,7 +204,23 @@ begin
             embed.url   = link if link
             embed.add_field(
               name: '',
-              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{type}"
+              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}"
+            )
+            embed.add_field(name: 'Description', value: desc)
+            embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
+          end
+        end
+
+      elsif ['Link Monster'].include?(type)
+        event.edit_response do |builder|
+          builder.content = ''
+          builder.add_embed do |embed|
+            embed.colour = type_info.delete_prefix('#').to_i(16)
+            embed.title = card_name
+            embed.url   = link if link
+            embed.add_field(
+              name: '',
+              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)}} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Link Rating:** #{linkval}\n**Link Arrow:** #{Arrow.scan(linkmarkers)}"
             )
             embed.add_field(name: 'Description', value: desc)
             embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
@@ -198,7 +236,7 @@ begin
             embed.url   = link if link
             embed.add_field(
               name: '',
-              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)}} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
+              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)}} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
             )
             embed.add_field(name: 'Description', value: desc)
             embed.add_field(name: 'ATK', value: atk.to_s, inline: true)
@@ -233,7 +271,7 @@ begin
 
     card_data = Search.name(input)
     type_info = card_data['color']
-    pict = card_data['image_small']
+    pict = card_data['image'][0]['image_url_cropped']
 
     if pict.nil? || pict.empty?
       event.edit_response(
@@ -271,7 +309,7 @@ begin
 
     card_data = Search.name(input)
     type_info = card_data['color']
-    pict = card_data['image']
+    pict = card_data['image'][0]['image_url']
 
     if pict.nil? || pict.empty?
       event.edit_response(
@@ -316,15 +354,15 @@ begin
         content: "Select a card from **#{result['count']} results**:",
         components: [
           {
-            type: 1, # Action Row
+            type: 1,
             components: [
               {
-                type: 3, # Select Menu
+                type: 3,
                 custom_id: 'card_select',
                 placeholder: 'Choose a card',
                 options: cards.map do |card|
                   {
-                    label: card[0..99], # max 100 chars
+                    label: card[0..99],
                     value: card
                   }
                 end
@@ -359,15 +397,18 @@ begin
       type_info    = card_data['color']
       ban_ocg      = card_data['ban_ocg'] || '-'
       ban_tcg      = card_data['ban_tcg'] || '-'
+      ban_md       = card_data['ban_md'] || '-'
       suffix       = card_data['suffix'] || ''
       type         = card_data['type'] || '-'
       race         = card_data['race'] || '-'
       attribute    = card_data['attribute'] || '-'
       level        = card_data['level'] || '-'
+      linkval      = card_data['linkval'] || '-'
+      linkmarkers  = card_data['linkmarkers'] || '-'
       desc         = card_data['desc'] || '-'
       atk          = card_data['atk'] || 0
       def_val      = card_data['def'] || 0
-      pict         = card_data['image_small']
+      pict         = card_data['image'][0]['image_url_cropped']
 
       if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
         event.respond do |builder|
@@ -378,7 +419,23 @@ begin
             embed.url    = link if link
             embed.add_field(
               name: '',
-              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)}\n**Type:** #{type}"
+              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}"
+            )
+            embed.add_field(name: 'Description', value: desc)
+            embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
+          end
+        end
+
+      elsif ['Link Monster'].include?(type)
+        event.edit_response do |builder|
+          builder.content = ''
+          builder.add_embed do |embed|
+            embed.colour = type_info.delete_prefix('#').to_i(16)
+            embed.title = card_name
+            embed.url   = link if link
+            embed.add_field(
+              name: '',
+              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)}} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Link Rating:** #{linkval}\n**Link Arrow:** #{Arrow.scan(linkmarkers)}"
             )
             embed.add_field(name: 'Description', value: desc)
             embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
@@ -394,7 +451,7 @@ begin
             embed.url    = link if link
             embed.add_field(
               name: '',
-              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)}\n" \
+              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
                      "**Type:** #{race} #{suffix}\n" \
                      "**Attribute:** #{attribute}\n" \
                      "**Level:** #{level}"
