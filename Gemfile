@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'discordrb', '3.5.0'
+gem 'discordrb', '3.7.2'
 gem 'dotenv', '3.1.8'
 gem 'logger', '1.7.0'
 gem 'telegram-bot-ruby', '2.1'

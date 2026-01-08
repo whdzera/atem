@@ -1,10 +1,9 @@
 require 'discordrb'
 require 'logger'
 require 'dotenv'
+
 Dotenv.load(File.expand_path('../config/.env', __dir__))
-Dir[File.join(__dir__, 'controllers/*.rb')].sort.each do |file|
-  require_relative file
-end
+Dir[File.join(__dir__, 'controllers/*.rb')].sort.each { |file| require_relative file }
 
 TOKEN     = ENV.fetch('token_discord')
 SERVER_ID = ENV.fetch('server_id_discord')
@@ -23,20 +22,20 @@ begin
   )
 
   # Register global slash commands (add 'server_id: SERVER_ID' for development)
-  bot.register_application_command(:info, 'Information bot')
-  bot.register_application_command(:help, 'Help command')
-  bot.register_application_command(:ping, 'Check bot latency')
-  bot.register_application_command(:random, 'Get a random Yu-Gi-Oh card')
-  bot.register_application_command(:search, 'Search Yu-Gi-Oh card by name') do |cmd|
+  bot.register_application_command(:info, 'Information bot', server_id: SERVER_ID)
+  bot.register_application_command(:help, 'Help command', server_id: SERVER_ID)
+  bot.register_application_command(:ping, 'Check bot latency', server_id: SERVER_ID)
+  bot.register_application_command(:random, 'Get a random Yu-Gi-Oh card', server_id: SERVER_ID)
+  bot.register_application_command(:search, 'Search Yu-Gi-Oh card by name', server_id: SERVER_ID) do |cmd|
     cmd.string('name', 'input card name', required: true)
   end
-  bot.register_application_command(:art, 'Search art Yu-Gi-Oh card by name') do |cmd|
+  bot.register_application_command(:art, 'Search art Yu-Gi-Oh card by name', server_id: SERVER_ID) do |cmd|
     cmd.string('name', 'input card name', required: true)
   end
-  bot.register_application_command(:img, 'Search image Yu-Gi-Oh card by name') do |cmd|
+  bot.register_application_command(:img, 'Search image Yu-Gi-Oh card by name', server_id: SERVER_ID) do |cmd|
     cmd.string('name', 'input card name', required: true)
   end
-  bot.register_application_command(:list, 'Get list of Yu-Gi-Oh cards') do |cmd|
+  bot.register_application_command(:list, 'Get list of Yu-Gi-Oh cards', server_id: SERVER_ID) do |cmd|
     cmd.string('name', 'input card name', required: true)
   end
 
@@ -86,7 +85,7 @@ begin
 
     card_data    = Random.card
     card_name    = card_data['name']
-    link         = card_data['card_url']
+    link         = card_data['link']
     type_info    = card_data['color']
     ban_ocg      = card_data['ban_ocg'] || '-'
     ban_tcg      = card_data['ban_tcg'] || '-'
@@ -101,7 +100,7 @@ begin
     desc         = card_data['desc'] || '-'
     atk          = card_data['atk'] || 0
     def_val      = card_data['def'] || 0
-    pict         = card_data['image'][0]['image_url_cropped']
+    pict         = card_data['images'][0]['image_url_cropped']
 
     if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
       event.edit_response do |builder|
@@ -178,7 +177,7 @@ begin
 
     if card_data && card_data['name']
       card_name    = card_data['name']
-      link         = card_data['card_url']
+      link         = card_data['link']
       type_info    = card_data['color']
       ban_ocg      = card_data['ban_ocg'] || '-'
       ban_tcg      = card_data['ban_tcg'] || '-'
@@ -193,7 +192,7 @@ begin
       desc         = card_data['desc'] || '-'
       atk          = card_data['atk'] || 0
       def_val      = card_data['def'] || 0
-      pict         = card_data['image'][0]['image_url_cropped']
+      pict         = card_data['images'][0]['image_url_cropped']
 
       if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
         event.edit_response do |builder|
@@ -271,7 +270,7 @@ begin
 
     card_data = Search.name(input)
     type_info = card_data['color']
-    pict = card_data['image'][0]['image_url_cropped']
+    pict = card_data['images'][0]['image_url_cropped']
 
     if pict.nil? || pict.empty?
       event.edit_response(
@@ -309,7 +308,7 @@ begin
 
     card_data = Search.name(input)
     type_info = card_data['color']
-    pict = card_data['image'][0]['image_url']
+    pict = card_data['images'][0]['image_url']
 
     if pict.nil? || pict.empty?
       event.edit_response(
@@ -393,7 +392,7 @@ begin
 
     if card_data && card_data['name']
       card_name    = card_data['name']
-      link         = card_data['card_url']
+      link         = card_data['link']
       type_info    = card_data['color']
       ban_ocg      = card_data['ban_ocg'] || '-'
       ban_tcg      = card_data['ban_tcg'] || '-'
@@ -408,7 +407,7 @@ begin
       desc         = card_data['desc'] || '-'
       atk          = card_data['atk'] || 0
       def_val      = card_data['def'] || 0
-      pict         = card_data['image'][0]['image_url_cropped']
+      pict         = card_data['images'][0]['image_url_cropped']
 
       if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
         event.respond do |builder|
