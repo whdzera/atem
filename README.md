@@ -13,17 +13,21 @@ APIs from Ygoprodeck
 
 https://atem.whdzera.my.id/
 
+> READ
+> !! The Whatsapp bot version is no longer being developed.
+
 ### Usage
 
-| Commands          | Discord         | Telegram        | Whatsapp        |
-| ----------------- | --------------- | --------------- | --------------- |
-| information       | `/info`         | `/info`         | `:atem`         |
-| ping              | `/ping`         | `/ping`         | `:ping`         |
-| random card       | `/random`       | `/random`       | `:random`       |
-| list card         | `/list`         | `/list`         | `:list`         |
-| image card        | `/card`         | `/card`         | `/card`         |
-| search card       | `/search`       | `/search`       | `:search`       |
-| quick search card | `::card_name::` | `::card_name::` | `::card_name::` |
+| Commands          | Discord   | Telegram        | Whatsapp        |
+| ----------------- | --------- | --------------- | --------------- |
+| information       | `/info`   | `/info`         | `/info`         |
+| information       | `/help`   | `/help`         | `/help`         |
+| ping              | `/ping`   | `/ping`         | `/ping`         |
+| random card       | `/random` | `/random`       | `/random`       |
+| list card         | `/list`   | `/list`         | `/list`         |
+| image card        | `/card`   | `/card`         | `/card`         |
+| search card       | `/search` | `/search`       | `/search`       |
+| quick search card | -         | `::card_name::` | `::card_name::` |
 
 ### View
 
@@ -42,30 +46,30 @@ install all dependency
 bundle install && npm install
 ```
 
-### Running and Tools
+### Run Bot
 
-Run Discord bot only
-
-```
-rake run dc=yes
-```
-
-Run WhatsApp and Telegram bots
+All
 
 ```
-rake run wa=yes tele=yes
+./bin/START
 ```
 
-Run all bots
+Discord
 
 ```
-rake run dc=yes wa=yes tele=yes
+rake discord
 ```
 
-kill process bot
+Telegram
 
 ```
-rake kill
+rake telegram
+```
+
+Whatsapps
+
+```
+rake wa
 ```
 
 unit test
