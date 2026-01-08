@@ -1,3 +1,6 @@
+require:
+  - rubocop-performance
+
 AllCops:
   Include:
     - "**/*.rb"
@@ -6,7 +9,14 @@ AllCops:
   Exclude:
     - "vendor/**/*"
     - "db/schema.rb"
+    - Gemfile
+    - Rakefile
+    - Capfile
+    - "*.gemspec"
   NewCops: enable
+
+Performance:
+  Enabled: true
 
 Layout/LineLength:
   Max: 120
@@ -21,6 +31,10 @@ Lint/AmbiguousBlockAssociation:
   Exclude:
     - "spec/**/*"
 
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+
 Layout/HeredocIndentation:
   Enabled: false
 
@@ -28,7 +42,7 @@ Metrics/ClassLength:
   Max: 175
 
 Metrics/MethodLength:
-  Max: 150
+  Max: 25
 
 Metrics/ParameterLists:
   Max: 20
@@ -49,4 +63,10 @@ Style/HashTransformKeys:
   Enabled: false
 
 Style/HashTransformValues:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/Documentation:
   Enabled: false
