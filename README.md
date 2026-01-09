@@ -28,7 +28,7 @@ https://atem.whdzera.my.id/
 | image card  | `/img`    | `/img`    | `/img`    |
 | list card   | `/list`   | `/list`   | `/list`   |
 | search card | `/search` | `/search` | `/search` |
-| Tier List   | `/tier`   | `/tier`   | `/tier`   |
+| tier list   | `/tier`   | `/tier`   | `/tier`   |
 
 ### View
 
