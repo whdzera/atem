@@ -4,10 +4,14 @@ class General
   end
 
   def self.help
-    "*Atem Bot*\n-------------------\n/info - information bot\n/ping - ping bot\n/random - random yugioh card\n/art <name_card> - search art yugioh card\n/img <name_card> - search image yugioh card\n/list <name_card> - search list yugioh card\n/search <name_card> - search yugioh card\n/tier <tier_type> - yugioh tier list"
+    "Atem Bot\n-------------------\n/info - information bot\n/ping - ping bot\n/random - random yugioh card\n/art <name_card> - search art yugioh card\n/img <name_card> - search image yugioh card\n/list <name_card> - search list yugioh card\n/search <name_card> - search yugioh card\n/tier <tier_type> - yugioh tier list"
   end
 
   def self.sourcecode
     'https://github.com/whdzera/atem'
+  end
+
+  def self.escape_markdown(text)
+    text.gsub(/([_*\[\]()~`>#+\-=|{}.!])/) { |m| "\\#{m}" }
   end
 end

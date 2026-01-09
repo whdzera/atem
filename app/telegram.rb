@@ -6,15 +6,17 @@ Dir[File.join(__dir__, 'controllers/*.rb')].sort.each do |file|
   require_relative file
 end
 
-COMMAND_PREFIX = '/'.freeze
-
 COMMANDS = {
   start: ['/start'],
   info: ['/info'],
   help: ['/help'],
   ping: ['/ping'],
   random: ['/random'],
-  search: ['/search']
+  art: ['/art'],
+  img: ['/img'],
+  list: ['/list'],
+  search: ['/search'],
+  tier: ['/tier']
 }.freeze
 
 TOKEN = ENV.fetch('token_telegram')
@@ -23,203 +25,417 @@ logger.level = Logger::INFO
 
 loop do
   logger.info "[#{Time.now}] Starting Telegram Bot..."
-  Telegram::Bot::Client.run(TOKEN, allowed_updates: ['message']) do |bot|
-    bot.listen do |message|
-      next unless message.is_a?(Telegram::Bot::Types::Message)
-      next unless message.text
+  Telegram::Bot::Client.run(TOKEN, allowed_updates: %w[message callback_query]) do |bot|
+    bot.listen do |update|
+      case update
+      when Telegram::Bot::Types::Message
+        text = update.text.to_s.strip
+        chat_id = update.chat.id
 
-      text = message.text.to_s.strip
-      chat_id = message.chat.id
-
-      # /start
-      if COMMANDS[:start].include?(text)
-        bot.api.send_message(
-          chat_id: chat_id,
-          text: 'Welcome to Atem bot! Use /help for usage.',
-          parse_mode: 'Markdown'
-        )
-
-      # /info
-      elsif COMMANDS[:info].include?(text)
-        response = General.info
-        bot.api.send_message(
-          chat_id: chat_id,
-          text: response,
-          parse_mode: 'Markdown'
-        )
-
-      # /help
-      elsif COMMANDS[:help].include?(text)
-        response = General.help
-        bot.api.send_message(
-          chat_id: chat_id,
-          text: response,
-          parse_mode: 'Markdown'
-        )
-
-      # /ping
-      elsif COMMANDS[:ping].include?(text)
-        start_time = Time.now
-        msg = bot.api.send_message(
-          chat_id: chat_id,
-          text: Ping.say,
-          parse_mode: 'Markdown'
-        )
-        latency = Ping.calculate_latency(start_time)
-        bot.api.edit_message_text(
-          chat_id: chat_id,
-          message_id: msg.message_id,
-          text: Ping.with_latency(latency),
-          parse_mode: 'Markdown'
-        )
-
-      # /random
-      elsif COMMANDS[:random].include?(text)
-
-        card_data = Random.card
-        card_name    = card_data['name']
-        ban_ocg      = card_data['ban_ocg'] || '-'
-        ban_tcg      = card_data['ban_tcg'] || '-'
-        ban_md       = card_data['ban_md'] || '-'
-        suffix       = card_data['suffix'] || ''
-        type         = card_data['type'] || '-'
-        race         = card_data['race'] || '-'
-        attribute    = card_data['attribute'] || '-'
-        level        = card_data['level'] || '-'
-        linkval      = card_data['linkval'] || '-'
-        linkmarkers  = card_data['linkmarkers'] || '-'
-        desc         = card_data['desc'] || '-'
-        atk          = card_data['atk'] || 0
-        def_val      = card_data['def'] || 0
-        pict         = card_data['images'][0]['image_url_cropped']
-
-        spell_trap_skill = ['Spell Card', 'Trap Card', 'Skill Card'].freeze
-        link_monster = ['Link Monster'].freeze
-
-        response = if spell_trap_skill.include?(type)
-                     {
-                       image: pict,
-                       message: "**#{card_name}**\n**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}\n**Type:** #{type}\n\n#{desc}"
-                     }
-
-                   elsif link_monster.include?(type)
-                     {
-                       image: pict,
-                       message: "**#{card_name}**\n**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}\n" \
-                                "**Type:** #{race} #{suffix}\n" \
-                                "**Attribute:** #{attribute}\n" \
-                                "**Link Rating:** #{linkval} / **Link Marker:** #{Arrow.scan(linkmarkers)}\n**ATK:** #{atk} **DEF:** #{def_val}\n\n#{desc}"
-                     }
-
-                   else
-                     {
-                       image: pict,
-                       message: "**#{card_name}**\n**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}\n" \
-                                "**Type:** #{race} #{suffix}\n" \
-                                "**Attribute:** #{attribute}\n" \
-                                "**Level:** #{level}\n**ATK:** #{atk} **DEF:** #{def_val}\n\n#{desc}"
-                     }
-                   end
-
-        bot.api.send_photo(
-          chat_id: chat_id,
-          photo: response[:image],
-          caption: response[:message],
-          parse_mode: 'Markdown'
-        )
-
-      # /search
-      elsif text.start_with?('/search')
-        query = text.sub('/search', '').strip
-
-        if query.empty?
+        # /start
+        if COMMANDS[:start].include?(text)
           bot.api.send_message(
             chat_id: chat_id,
-            text: "Use the format:\n`/search <card_name>`",
+            text: 'Welcome to Atem bot! Use /help for usage.',
             parse_mode: 'Markdown'
           )
-          next
-        end
 
-        card_data = Search.name(query)
-
-        if card_data.nil? || card_data.empty?
+        # /info
+        elsif COMMANDS[:info].include?(text)
+          response = General.info
           bot.api.send_message(
             chat_id: chat_id,
-            text: "Card not found: *#{query}*",
+            text: response,
             parse_mode: 'Markdown'
           )
-          next
+
+        # /help
+        elsif COMMANDS[:help].include?(text)
+          get = General.help
+          response = General.escape_markdown(get)
+
+          bot.api.send_message(
+            chat_id: chat_id,
+            text: response,
+            parse_mode: 'Markdown'
+          )
+
+        # /ping
+        elsif COMMANDS[:ping].include?(text)
+          start_time = Time.now
+          msg = bot.api.send_message(
+            chat_id: chat_id,
+            text: Ping.say,
+            parse_mode: 'Markdown'
+          )
+          latency = Ping.calculate_latency(start_time)
+          bot.api.edit_message_text(
+            chat_id: chat_id,
+            message_id: msg.message_id,
+            text: Ping.with_latency(latency),
+            parse_mode: 'Markdown'
+          )
+
+        # /random
+        elsif COMMANDS[:random].include?(text)
+
+          card_data = Random.card
+          card_name    = card_data['name']
+          ban_ocg      = card_data['ban_ocg'] || '-'
+          ban_tcg      = card_data['ban_tcg'] || '-'
+          ban_md       = card_data['ban_md'] || '-'
+          suffix       = card_data['suffix'] || ''
+          type         = card_data['type'] || '-'
+          race         = card_data['race'] || '-'
+          attribute    = card_data['attribute'] || '-'
+          level        = card_data['level'] || '-'
+          linkval      = card_data['linkval'] || '-'
+          linkmarkers  = card_data['linkmarkers'] || '-'
+          desc         = card_data['desc'] || '-'
+          atk          = card_data['atk'] || 0
+          def_val      = card_data['def'] || 0
+          pict         = card_data['images'][0]['image_url_cropped']
+
+          spell_trap_skill = ['Spell Card', 'Trap Card', 'Skill Card'].freeze
+          link_monster = ['Link Monster'].freeze
+
+          response = if spell_trap_skill.include?(type)
+                       {
+                         image: pict,
+                         message: "**#{card_name}**\n**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}\n**Type:** #{type}\n\n#{desc}"
+                       }
+
+                     elsif link_monster.include?(type)
+                       {
+                         image: pict,
+                         message: "**#{card_name}**\n**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}\n" \
+                                  "**Type:** #{race} #{suffix}\n" \
+                                  "**Attribute:** #{attribute}\n" \
+                                  "**Link Rating:** #{linkval} / **Link Marker:** #{Arrow.scan(linkmarkers)}\n**ATK:** #{atk} **DEF:** #{def_val}\n\n#{desc}"
+                       }
+
+                     else
+                       {
+                         image: pict,
+                         message: "**#{card_name}**\n**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}\n" \
+                                  "**Type:** #{race} #{suffix}\n" \
+                                  "**Attribute:** #{attribute}\n" \
+                                  "**Level:** #{level}\n**ATK:** #{atk} **DEF:** #{def_val}\n\n#{desc}"
+                       }
+                     end
+
+          bot.api.send_photo(
+            chat_id: chat_id,
+            photo: response[:image],
+            caption: response[:message],
+            parse_mode: 'Markdown'
+          )
+
+        # /art
+        elsif text.start_with?('/art')
+          query = text.sub('/art', '').strip
+
+          if query.empty?
+            bot.api.send_message(
+              chat_id: chat_id,
+              text: "Use the format:\n`/art <card_name>`",
+              parse_mode: 'Markdown'
+            )
+            next
+          end
+
+          card_data = Search.name(query)
+          if card_data.nil? || card_data.empty?
+            bot.api.send_message(
+              chat_id: chat_id,
+              text: "Card not found: *#{query}*",
+              parse_mode: 'Markdown'
+            )
+            next
+          end
+
+          card = card_data.is_a?(Array) ? card_data.first : card_data
+          pict = card['images'][0]['image_url_cropped']
+
+          if pict.nil?
+            bot.api.send_message(chat_id: chat_id, text: "No image found for *#{query}*", parse_mode: 'Markdown')
+            next
+          end
+
+          bot.api.send_photo(
+            chat_id: chat_id,
+            photo: pict,
+            parse_mode: 'Markdown'
+          )
+
+        # /img
+        elsif text.start_with?('/img')
+          query = text.sub('/img', '').strip
+
+          if query.empty?
+            bot.api.send_message(
+              chat_id: chat_id,
+              text: "Use the format:\n`/img <card_name>`",
+              parse_mode: 'Markdown'
+            )
+            next
+          end
+
+          card_data = Search.name(query)
+          if card_data.nil? || card_data.empty?
+            bot.api.send_message(
+              chat_id: chat_id,
+              text: "Card not found: *#{query}*",
+              parse_mode: 'Markdown'
+            )
+            next
+          end
+
+          card = card_data.is_a?(Array) ? card_data.first : card_data
+          pict = card['images'][0]['image_url']
+
+          if pict.nil?
+            bot.api.send_message(chat_id: chat_id, text: "No image found for *#{query}*", parse_mode: 'Markdown')
+            next
+          end
+
+          bot.api.send_photo(
+            chat_id: chat_id,
+            photo: pict,
+            parse_mode: 'Markdown'
+          )
+
+        elsif text.start_with?('/list')
+          query = text.sub('/list', '').strip
+          if query.empty?
+            bot.api.send_message(chat_id: chat_id, text: "Use the format:\n/list <card_name>")
+            next
+          end
+
+          result = List.name(query, only: 'name')
+          if result.nil? || result['cards'].empty?
+            bot.api.send_message(chat_id: chat_id, text: "No cards found with the name #{query}")
+            next
+          end
+
+          cards = result['cards'].first(20)
+          keyboard = Telegram::Bot::Types::InlineKeyboardMarkup.new(
+            inline_keyboard: cards.map { |c| [Telegram::Bot::Types::InlineKeyboardButton.new(text: c, callback_data: "card:#{c}")] }
+          )
+
+          bot.api.send_message(
+            chat_id: chat_id,
+            text: "Select a card from #{result['count']} results:",
+            reply_markup: keyboard
+          )
+
+        # /search
+        elsif text.start_with?('/search')
+          query = text.sub('/search', '').strip
+
+          if query.empty?
+            bot.api.send_message(
+              chat_id: chat_id,
+              text: "Use the format:\n`/search <card_name>`",
+              parse_mode: 'Markdown'
+            )
+            next
+          end
+
+          card_data = Search.name(query)
+
+          if card_data.nil? || card_data.empty?
+            bot.api.send_message(
+              chat_id: chat_id,
+              text: "Card not found: *#{query}*",
+              parse_mode: 'Markdown'
+            )
+            next
+          end
+
+          card = card_data.is_a?(Array) ? card_data.first : card_data
+
+          card_name    = card['name']
+          ban_ocg      = card['ban_ocg'] || '-'
+          ban_tcg      = card['ban_tcg'] || '-'
+          ban_md       = card['ban_md'] || '-'
+          suffix       = card['suffix'] || ''
+          type         = card['type'] || '-'
+          race         = card['race'] || '-'
+          attribute    = card['attribute'] || '-'
+          level        = card['level'] || '-'
+          linkval      = card['linkval'] || '-'
+          linkmarkers  = card['linkmarkers'] || '-'
+          desc         = card['desc'] || '-'
+          atk          = card['atk'] || 0
+          def_val      = card['def'] || 0
+          pict         = card['images'][0]['image_url_cropped']
+
+          spell_trap_skill = ['Spell Card', 'Trap Card', 'Skill Card'].freeze
+          link_monster = ['Link Monster'].freeze
+
+          response = if spell_trap_skill.include?(type)
+                       {
+                         image: pict,
+                         message: "**#{card_name}**\n" \
+                                  "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
+                                  "**Type:** #{type}\n\n#{desc}"
+                       }
+                     elsif link_monster.include?(type)
+                       {
+                         image: pict,
+                         message: "**#{card_name}**\n" \
+                                  "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
+                                  "**Type:** #{type}\n" \
+                                  "**Race:** #{race} #{suffix}\n" \
+                                  "**Attribute:** #{attribute}\n" \
+                                  "**Link Rating:** #{linkval} / **Link Marker:** #{Arrow.scan(linkmarkers)}\n" \
+                                  "**ATK:** #{atk} **DEF:** #{def_val}\n\n#{desc}"
+                       }
+                     else
+                       {
+                         image: pict,
+                         message: "**#{card_name}**\n" \
+                                  "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
+                                  "**Type:** #{type}\n" \
+                                  "**Race:** #{race} #{suffix}\n" \
+                                  "**Attribute:** #{attribute}\n" \
+                                  "**Level:** #{level}\n" \
+                                  "**ATK:** #{atk} **DEF:** #{def_val}\n\n#{desc}"
+                       }
+                     end
+
+          bot.api.send_photo(
+            chat_id: chat_id,
+            photo: response[:image],
+            caption: response[:message],
+            parse_mode: 'Markdown'
+          )
+
+        # /tier list
+        elsif text.start_with?('/tier')
+          tier_type = text.sub('/tier', '').strip.downcase
+          if tier_type.empty?
+            bot.api.send_message(chat_id: chat_id, text: "Use the format:\n/tier <tcg|ocg|md|dl|rush>")
+            next
+          end
+
+          result = Tierlist.name(tier_type)
+          if result.nil? || result['decks'].empty?
+            bot.api.send_message(chat_id: chat_id, text: "No tier list found for #{tier_type}")
+            next
+          end
+
+          decks = result['decks'].first(20) # batasi 20 untuk keyboard
+          keyboard = Telegram::Bot::Types::InlineKeyboardMarkup.new(
+            inline_keyboard: decks.map { |d| [Telegram::Bot::Types::InlineKeyboardButton.new(text: "#{d['name']} (#{d['tier']})", callback_data: "tier:#{d['name']}")] }
+          )
+
+          bot.api.send_message(
+            chat_id: chat_id,
+            text: "Select a deck from Tier List (#{result['source']}):",
+            reply_markup: keyboard
+          )
+
+        end
+        logger.info "Received from @#{update.from.username}: #{update.text}"
+
+      when Telegram::Bot::Types::CallbackQuery
+        chat_id = update.message.chat.id
+        type, value = update.data.split(':', 2)
+        next unless value
+
+        case type
+        when 'card'
+          card_data = Search.name(value)
+          next unless card_data && !card_data.empty?
+
+          card = card_data.is_a?(Array) ? card_data.first : card_data
+
+          card_name    = card['name']
+          ban_ocg      = card['ban_ocg'] || '-'
+          ban_tcg      = card['ban_tcg'] || '-'
+          ban_md       = card['ban_md'] || '-'
+          suffix       = card['suffix'] || ''
+          type         = card['type'] || '-'
+          race         = card['race'] || '-'
+          attribute    = card['attribute'] || '-'
+          level        = card['level'] || '-'
+          linkval      = card['linkval'] || '-'
+          linkmarkers  = card['linkmarkers'] || '-'
+          desc         = card['desc'] || '-'
+          atk          = card['atk'] || 0
+          def_val      = card['def'] || 0
+          pict         = card['images'][0]['image_url_cropped']
+
+          spell_trap_skill = ['Spell Card', 'Trap Card', 'Skill Card'].freeze
+          link_monster = ['Link Monster'].freeze
+
+          response = if spell_trap_skill.include?(type)
+                       {
+                         image: pict,
+                         message: "**#{card_name}**\n" \
+                                  "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
+                                  "**Type:** #{type}\n\n#{desc}"
+                       }
+                     elsif link_monster.include?(type)
+                       {
+                         image: pict,
+                         message: "**#{card_name}**\n" \
+                                  "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
+                                  "**Type:** #{type}\n" \
+                                  "**Race:** #{race} #{suffix}\n" \
+                                  "**Attribute:** #{attribute}\n" \
+                                  "**Link Rating:** #{linkval} / **Link Marker:** #{Arrow.scan(linkmarkers)}\n" \
+                                  "**ATK:** #{atk} **DEF:** #{def_val}\n\n#{desc}"
+                       }
+                     else
+                       {
+                         image: pict,
+                         message: "**#{card_name}**\n" \
+                                  "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
+                                  "**Type:** #{type}\n" \
+                                  "**Race:** #{race} #{suffix}\n" \
+                                  "**Attribute:** #{attribute}\n" \
+                                  "**Level:** #{level}\n" \
+                                  "**ATK:** #{atk} **DEF:** #{def_val}\n\n#{desc}"
+                       }
+                     end
+
+          bot.api.send_photo(
+            chat_id: chat_id,
+            photo: response[:image],
+            caption: response[:message],
+            parse_mode: 'Markdown'
+          )
+
+          bot.api.answer_callback_query(callback_query_id: update.id)
+          logger.info "Selected card: #{value} by @#{update.from.username}"
+
+        when 'tier'
+          tier_data = Tierlist.name('md') # contoh default, bisa juga simpan tipe di callback_data
+          deck = tier_data['decks'].find { |d| d['name'] == value }
+
+          if deck.nil?
+            bot.api.send_message(chat_id: chat_id, text: "Deck not found: #{value}")
+            next
+          end
+
+          msg_text = "**#{deck['name']}**\n" \
+                     "Tier: #{deck['tier']}\n" \
+                     "Power: #{deck['power'] || 'N/A'}"
+
+          bot.api.send_message(chat_id: chat_id, text: msg_text, parse_mode: 'Markdown')
         end
 
-        card = card_data.is_a?(Array) ? card_data.first : card_data
-
-        card_name    = card['name']
-        ban_ocg      = card['ban_ocg'] || '-'
-        ban_tcg      = card['ban_tcg'] || '-'
-        ban_md       = card['ban_md'] || '-'
-        suffix       = card['suffix'] || ''
-        type         = card['type'] || '-'
-        race         = card['race'] || '-'
-        attribute    = card['attribute'] || '-'
-        level        = card['level'] || '-'
-        linkval      = card['linkval'] || '-'
-        linkmarkers  = card['linkmarkers'] || '-'
-        desc         = card['desc'] || '-'
-        atk          = card['atk'] || 0
-        def_val      = card['def'] || 0
-        pict         = card['images'][0]['image_url_cropped']
-
-        spell_trap_skill = ['Spell Card', 'Trap Card', 'Skill Card'].freeze
-        link_monster = ['Link Monster'].freeze
-
-        response = if spell_trap_skill.include?(type)
-                     {
-                       image: pict,
-                       message: "**#{card_name}**\n" \
-                                "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
-                                "**Type:** #{type}\n\n#{desc}"
-                     }
-                   elsif link_monster.include?(type)
-                     {
-                       image: pict,
-                       message: "**#{card_name}**\n" \
-                                "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
-                                "**Type:** #{type}\n" \
-                                "**Race:** #{race} #{suffix}\n" \
-                                "**Attribute:** #{attribute}\n" \
-                                "**Link Rating:** #{linkval} / **Link Marker:** #{Arrow.scan(linkmarkers)}\n" \
-                                "**ATK:** #{atk} **DEF:** #{def_val}\n\n#{desc}"
-                     }
-                   else
-                     {
-                       image: pict,
-                       message: "**#{card_name}**\n" \
-                                "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
-                                "**Type:** #{type}\n" \
-                                "**Race:** #{race} #{suffix}\n" \
-                                "**Attribute:** #{attribute}\n" \
-                                "**Level:** #{level}\n" \
-                                "**ATK:** #{atk} **DEF:** #{def_val}\n\n#{desc}"
-                     }
-                   end
-
-        bot.api.send_photo(
-          chat_id: chat_id,
-          photo: response[:image],
-          caption: response[:message],
-          parse_mode: 'Markdown'
-        )
       end
-
-      logger.info "Received from @#{message.from.username}: #{message.text}"
+    rescue Telegram::Bot::Exceptions::ResponseError => e
+      logger.error "[Telegram Error] #{e.message}"
+      sleep 5
+    rescue StandardError => e
+      logger.error "[Unhandled Error] #{e.class}: #{e.message}"
+      logger.error e.backtrace.join("\n")
+      sleep 5
     end
   end
-rescue Telegram::Bot::Exceptions::ResponseError => e
-  logger.error "[Telegram Error] #{e.message}"
-  sleep 10
-rescue StandardError => e
-  logger.error "[Unhandled Error] #{e.class}: #{e.message}"
-  logger.error e.backtrace.join("\n")
-  sleep 5
 end
