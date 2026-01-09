@@ -13,21 +13,21 @@ APIs from Ygoprodeck
 
 https://atem.whdzera.my.id/
 
-> READ
+> !! READ
 > !! The Whatsapp bot version is no longer being developed.
 
 ### Usage
 
-| Commands          | Discord   | Telegram        | Whatsapp        |
-| ----------------- | --------- | --------------- | --------------- |
-| information       | `/info`   | `/info`         | `/info`         |
-| information       | `/help`   | `/help`         | `/help`         |
-| ping              | `/ping`   | `/ping`         | `/ping`         |
-| random card       | `/random` | `/random`       | `/random`       |
-| list card         | `/list`   | `/list`         | `/list`         |
-| image card        | `/card`   | `/card`         | `/card`         |
-| search card       | `/search` | `/search`       | `/search`       |
-| quick search card | -         | `::card_name::` | `::card_name::` |
+| Commands    | Discord   | Telegram  | Whatsapp  |
+| ----------- | --------- | --------- | --------- |
+| information | `/info`   | `/info`   | `/info`   |
+| help        | `/help`   | `/help`   | `/help`   |
+| ping        | `/ping`   | `/ping`   | `/ping`   |
+| random card | `/random` | `/random` | `/random` |
+| art card    | `/art`    | `/art`    | `/art`    |
+| image card  | `/img`    | `/img`    | `/img`    |
+| list card   | `/list`   | `/list`   | `/list`   |
+| search card | `/search` | `/search` | `/search` |
 
 ### View
 

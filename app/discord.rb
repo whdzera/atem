@@ -25,6 +25,7 @@ begin
   bot.register_application_command(:info, 'Information bot', server_id: SERVER_ID)
   bot.register_application_command(:help, 'Help command', server_id: SERVER_ID)
   bot.register_application_command(:ping, 'Check bot latency', server_id: SERVER_ID)
+  bot.register_application_command(:invite, 'Invite the bot', server_id: SERVER_ID)
   bot.register_application_command(:random, 'Get a random Yu-Gi-Oh card', server_id: SERVER_ID)
   bot.register_application_command(:search, 'Search Yu-Gi-Oh card by name', server_id: SERVER_ID) do |cmd|
     cmd.string('name', 'input card name', required: true)
@@ -37,6 +38,20 @@ begin
   end
   bot.register_application_command(:list, 'Get list of Yu-Gi-Oh cards', server_id: SERVER_ID) do |cmd|
     cmd.string('name', 'input card name', required: true)
+  end
+  bot.register_application_command(:tier, 'Yu-Gi-Oh Tier list', server_id: SERVER_ID) do |cmd|
+    cmd.string(
+      'name',
+      'Choose tier list',
+      required: true,
+      choices: {
+        'Tier List TCG' => 'tcg',
+        'Tier List OCG' => 'ocg',
+        'Tier List Master Duel' => 'md',
+        'Tier List Duel Links' => 'dl',
+        'Tier List Rush Duel' => 'rush'
+      }
+    )
   end
 
   # Bot ready event
@@ -77,6 +92,12 @@ begin
     logger.info "Command used by #{event.user.username}: /ping"
   rescue StandardError => e
     event.respond(content: "Error calculating ping: #{e.message}")
+  end
+
+  # invite bot
+  bot.application_command(:invite) do |event|
+    event.respond(content: event.bot.invite_url)
+    logger.info "Command used by #{event.user.username}: /invite"
   end
 
   # /random
@@ -466,6 +487,43 @@ begin
     else
       event.respond(content: "No card found with the name #{chosen_card}")
     end
+  end
+
+  # Tier List
+  bot.application_command(:tier) do |event|
+    tier = event.options['name']
+
+    event.defer(ephemeral: false)
+
+    result = Tierlist.name(tier)
+
+    if result.nil? || result['decks'].nil? || result['decks'].empty?
+      event.edit_response(content: "No data found for **#{tier.upcase}**")
+      next
+    end
+
+    decks = result['decks'].first(25)
+
+    event.edit_response do |builder|
+      builder.add_embed do |embed|
+        embed.title  = "Yu-Gi-Oh Tier List – #{tier.upcase}"
+        embed.colour = 0x5865F2
+        embed.footer = Discordrb::Webhooks::EmbedFooter.new(text: result['source'])
+
+        embed.description = decks.map.with_index(1) do |deck, i|
+          tier_label = deck['tier'] || '-'
+          power      = deck['power'] ? deck['power'].to_s : '-'
+
+          "**#{i}. #{deck['name']}**\n" \
+            "Tier: #{tier_label} | Power: #{power}"
+        end.join("\n\n")
+      end
+    end
+
+    logger.info "Command used by #{event.user.username}: /tier #{tier}"
+  rescue StandardError => e
+    logger.error "Error in /tier: #{e.message}"
+    event.edit_response(content: "Something went wrong while fetching tier list for '#{tier}'")
   end
 
   bot.run

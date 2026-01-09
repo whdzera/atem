@@ -91,7 +91,7 @@ loop do
         desc         = card_data['desc'] || '-'
         atk          = card_data['atk'] || 0
         def_val      = card_data['def'] || 0
-        pict         = card_data['image'][0]['image_url_cropped']
+        pict         = card_data['images'][0]['image_url_cropped']
 
         response = if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
                      {
@@ -165,7 +165,7 @@ loop do
         desc         = card['desc'] || '-'
         atk          = card['atk'] || 0
         def_val      = card['def'] || 0
-        pict         = card['image'][0]['image_url_cropped']
+        pict         = card['images'][0]['image_url_cropped']
 
         response = if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
                      {
