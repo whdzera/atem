@@ -29,7 +29,7 @@ loop do
       next unless message.text
 
       text = message.text.to_s.strip
-      chat_id = message.chat.id
+      chat_id = message.chat.chat_id
 
       # /start
       if COMMANDS[:start].include?(text)
@@ -93,13 +93,16 @@ loop do
         def_val      = card_data['def'] || 0
         pict         = card_data['images'][0]['image_url_cropped']
 
-        response = if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
+        spell_trap_skill = ['Spell Card', 'Trap Card', 'Skill Card'].freeze
+        link_monster = ['Link Monster'].freeze
+
+        response = if spell_trap_skill.include?(type)
                      {
                        image: pict,
                        message: "**#{card_name}**\n**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}\n**Type:** #{type}\n\n#{desc}"
                      }
 
-                   elsif ['Link Monster'].include?(type)
+                   elsif link_monster.include?(type)
                      {
                        image: pict,
                        message: "**#{card_name}**\n**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}\n" \
@@ -167,14 +170,17 @@ loop do
         def_val      = card['def'] || 0
         pict         = card['images'][0]['image_url_cropped']
 
-        response = if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
+        spell_trap_skill = ['Spell Card', 'Trap Card', 'Skill Card'].freeze
+        link_monster = ['Link Monster'].freeze
+
+        response = if spell_trap_skill.include?(type)
                      {
                        image: pict,
                        message: "**#{card_name}**\n" \
                                 "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
                                 "**Type:** #{type}\n\n#{desc}"
                      }
-                   elsif ['Link Monster'].include?(type)
+                   elsif link_monster.include?(type)
                      {
                        image: pict,
                        message: "**#{card_name}**\n" \
