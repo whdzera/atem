@@ -29,7 +29,7 @@ loop do
       next unless message.text
 
       text = message.text.to_s.strip
-      chat_id = message.chat.chat_id
+      chat_id = message.chat.id
 
       # /start
       if COMMANDS[:start].include?(text)
