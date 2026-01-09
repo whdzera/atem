@@ -312,28 +312,25 @@ loop do
             parse_mode: 'Markdown'
           )
 
-        # /tier list
+        # /tierlist
         elsif text.start_with?('/tier')
-          tier_type = text.sub('/tier', '').strip.downcase
-          if tier_type.empty?
-            bot.api.send_message(chat_id: chat_id, text: "Use the format:\n/tier <tcg|ocg|md|dl|rush>")
-            next
-          end
+          options = {
+            "TCG" => "tcg",
+            "OCG" => "ocg",
+            "Master Duel" => "md",
+            "Duel Links" => "dl",
+            "Rush Duel" => "rush"
+          }
 
-          result = Tierlist.name(tier_type)
-          if result.nil? || result['decks'].empty?
-            bot.api.send_message(chat_id: chat_id, text: "No tier list found for #{tier_type}")
-            next
-          end
-
-          decks = result['decks'].first(20) # batasi 20 untuk keyboard
           keyboard = Telegram::Bot::Types::InlineKeyboardMarkup.new(
-            inline_keyboard: decks.map { |d| [Telegram::Bot::Types::InlineKeyboardButton.new(text: "#{d['name']} (#{d['tier']})", callback_data: "tier:#{d['name']}")] }
+            inline_keyboard: options.map { |label, value|
+              [Telegram::Bot::Types::InlineKeyboardButton.new(text: label, callback_data: "tier:#{value}")]
+            }
           )
 
           bot.api.send_message(
             chat_id: chat_id,
-            text: "Select a deck from Tier List (#{result['source']}):",
+            text: "Choose Tier List:",
             reply_markup: keyboard
           )
 
@@ -413,19 +410,27 @@ loop do
           logger.info "Selected card: #{value} by @#{update.from.username}"
 
         when 'tier'
-          tier_data = Tierlist.name('md') # contoh default, bisa juga simpan tipe di callback_data
-          deck = tier_data['decks'].find { |d| d['name'] == value }
+          tier_data = Tierlist.name(value)
 
-          if deck.nil?
-            bot.api.send_message(chat_id: chat_id, text: "Deck not found: #{value}")
+          if tier_data.nil? || tier_data['decks'].empty?
+            bot.api.send_message(chat_id: chat_id, text: "No decks found for #{value}")
             next
           end
 
-          msg_text = "**#{deck['name']}**\n" \
-                     "Tier: #{deck['tier']}\n" \
-                     "Power: #{deck['power'] || 'N/A'}"
+          decks = tier_data['decks'].first(20)
 
-          bot.api.send_message(chat_id: chat_id, text: msg_text, parse_mode: 'Markdown')
+          text = "Tier List from #{tier_data['source']}:\n\n"
+
+          decks.each_with_index do |d, i|
+            text += "#{i + 1}. #{d['name']}\n"
+            text += "   Tier  : #{d['tier']}\n"
+            text += "   Power : #{d['power'] || 'N/A'}\n\n"
+          end
+
+          bot.api.send_message(
+            chat_id: chat_id,
+            text: text
+          )
         end
 
       end
