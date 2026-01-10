@@ -1,4 +1,5 @@
 config/.env
+config/.env.prod
 Gemfile.lock
 .rubocop_todo.yml
 node_modules
