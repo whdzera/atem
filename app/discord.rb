@@ -111,6 +111,8 @@ begin
     ban_ocg      = card_data['ban_ocg'] || '-'
     ban_tcg      = card_data['ban_tcg'] || '-'
     ban_md       = card_data['ban_md'] || '-'
+    md_rarity    = card_data['md_rarity'] || '-'
+    genesys      = card_data['genesys'] || '-'
     suffix       = card_data['suffix'] || ''
     type         = card_data['type'] || '-'
     race         = card_data['race'] || '-'
@@ -132,7 +134,7 @@ begin
           embed.url   = link if link
           embed.add_field(
             name: '',
-            value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}"
+            value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{type}"
           )
           embed.add_field(name: 'Description', value: desc)
           embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
@@ -148,7 +150,7 @@ begin
           embed.url   = link if link
           embed.add_field(
             name: '',
-            value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)}} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Link Rating:** #{linkval}\n**Link Arrow:** #{Arrow.scan(linkmarkers)}"
+            value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Link Rating:** #{linkval}\n**Link Arrow:** #{Arrow.scan(linkmarkers)}"
           )
           embed.add_field(name: 'Description', value: desc)
           embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
@@ -164,7 +166,7 @@ begin
           embed.url   = link if link
           embed.add_field(
             name: '',
-            value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
+            value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
           )
           embed.add_field(name: 'Description', value: desc)
           embed.add_field(name: 'ATK', value: atk.to_s, inline: true)
@@ -203,6 +205,8 @@ begin
       ban_ocg      = card_data['ban_ocg'] || '-'
       ban_tcg      = card_data['ban_tcg'] || '-'
       ban_md       = card_data['ban_md'] || '-'
+      md_rarity    = card_data['md_rarity'] || '-'
+      genesys      = card_data['genesys'] || '-'
       suffix       = card_data['suffix'] || ''
       type         = card_data['type'] || '-'
       race         = card_data['race'] || '-'
@@ -224,7 +228,7 @@ begin
             embed.url   = link if link
             embed.add_field(
               name: '',
-              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}"
+              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{type}"
             )
             embed.add_field(name: 'Description', value: desc)
             embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
@@ -240,7 +244,7 @@ begin
             embed.url   = link if link
             embed.add_field(
               name: '',
-              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)}} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Link Rating:** #{linkval}\n**Link Arrow:** #{Arrow.scan(linkmarkers)}"
+              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Link Rating:** #{linkval}\n**Link Arrow:** #{Arrow.scan(linkmarkers)}"
             )
             embed.add_field(name: 'Description', value: desc)
             embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
@@ -256,7 +260,7 @@ begin
             embed.url   = link if link
             embed.add_field(
               name: '',
-              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)}} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
+              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
             )
             embed.add_field(name: 'Description', value: desc)
             embed.add_field(name: 'ATK', value: atk.to_s, inline: true)
@@ -418,6 +422,8 @@ begin
       ban_ocg      = card_data['ban_ocg'] || '-'
       ban_tcg      = card_data['ban_tcg'] || '-'
       ban_md       = card_data['ban_md'] || '-'
+      md_rarity    = card_data['md_rarity'] || '-'
+      genesys      = card_data['genesys'] || '-'
       suffix       = card_data['suffix'] || ''
       type         = card_data['type'] || '-'
       race         = card_data['race'] || '-'
@@ -439,7 +445,7 @@ begin
             embed.url    = link if link
             embed.add_field(
               name: '',
-              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{type}"
+              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{type}"
             )
             embed.add_field(name: 'Description', value: desc)
             embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
@@ -455,7 +461,7 @@ begin
             embed.url   = link if link
             embed.add_field(
               name: '',
-              value: "**Limit :** **OCG:** #{Banlist.scan(ban_ocg)}} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Link Rating:** #{linkval}\n**Link Arrow:** #{Arrow.scan(linkmarkers)}"
+              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Link Rating:** #{linkval}\n**Link Arrow:** #{Arrow.scan(linkmarkers)}"
             )
             embed.add_field(name: 'Description', value: desc)
             embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
@@ -471,10 +477,7 @@ begin
             embed.url    = link if link
             embed.add_field(
               name: '',
-              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n" \
-                     "**Type:** #{race} #{suffix}\n" \
-                     "**Attribute:** #{attribute}\n" \
-                     "**Level:** #{level}"
+              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
             )
             embed.add_field(name: 'Description', value: desc)
             embed.add_field(name: 'ATK', value: atk.to_s, inline: true)
