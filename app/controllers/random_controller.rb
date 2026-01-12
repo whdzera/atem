@@ -3,19 +3,24 @@ require 'uri'
 require 'json'
 
 class Random
-  API_URL   = ENV.fetch('apiurl')
-  API_TOKEN = ENV.fetch('apikey')
+  def self.api_url
+    ENV.fetch('apiurl', nil)
+  end
+
+  def self.api_token
+    ENV.fetch('apikey', nil)
+  end
 
   def self.card
-    return nil if API_URL.nil? || API_TOKEN.nil?
+    return nil if api_url.nil? || api_token.nil?
 
-    uri = URI.join(API_URL, '/api/yugioh/random')
+    uri = URI.join(api_url, '/api/yugioh/random')
 
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = (uri.scheme == 'https')
 
     request = Net::HTTP::Get.new(uri.request_uri)
-    request['Authorization'] = "Bearer #{API_TOKEN}"
+    request['Authorization'] = "Bearer #{api_token}"
 
     response = http.request(request)
 

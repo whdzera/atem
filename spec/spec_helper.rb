@@ -1,5 +1,6 @@
 require 'rspec'
 require 'timecop'
+require 'webmock/rspec'
 
 Dir[File.join(__dir__, '../app/controllers/*.rb')].sort.each do |file|
   require_relative file

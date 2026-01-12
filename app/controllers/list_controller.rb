@@ -3,24 +3,29 @@ require 'uri'
 require 'json'
 
 class List
-  API_URL   = ENV.fetch('apiurl')
-  API_TOKEN = ENV.fetch('apikey')
+  def self.api_url
+    ENV.fetch('apiurl', nil)
+  end
+
+  def self.api_token
+    ENV.fetch('apikey', nil)
+  end
 
   def self.name(input, only: nil)
-    return nil if API_URL.nil? || API_TOKEN.nil? || input.nil? || input.strip.empty?
+    return nil if api_url.nil? || api_token.nil? || input.nil? || input.strip.empty?
 
     encoded = URI.encode_www_form_component(input)
 
     query = "name=#{encoded}"
     query += "&only=#{only}" if only
 
-    uri = URI.join(API_URL, "/api/yugioh/list?#{query}")
+    uri = URI.join(api_url, "/api/yugioh/list?#{query}")
 
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = (uri.scheme == 'https')
 
     request = Net::HTTP::Get.new(uri.request_uri)
-    request['Authorization'] = "Bearer #{API_TOKEN}"
+    request['Authorization'] = "Bearer #{api_token}"
 
     response = http.request(request)
 

@@ -1,15 +1,25 @@
 require 'discordrb'
+require 'ygoprodeck'
 require 'logger'
 require 'dotenv'
+require 'json'
 
 Dotenv.load(File.expand_path('../config/.env', __dir__))
 Dir[File.join(__dir__, 'controllers/*.rb')].sort.each { |file| require_relative file }
+
+json_path = File.expand_path(
+  'ygoprodeck/search/assets/names_card.json',
+  "#{Gem.loaded_specs['ygoprodeck'].full_gem_path}/lib"
+)
 
 TOKEN     = ENV.fetch('token_discord')
 SERVER_ID = ENV.fetch('server_id_discord')
 CLIENT_ID = ENV.fetch('client_id_discord')
 logger = Logger.new($stdout)
 logger.level = Logger::INFO
+
+CARD_NAMES = JSON.parse(File.read(json_path)).freeze
+CARD_INDEX = CARD_NAMES.map { |n| [n, n.downcase] }.freeze
 
 begin
   logger.info "[#{Time.now}] Starting Atem Discord Bot..."
@@ -28,7 +38,8 @@ begin
   bot.register_application_command(:invite, 'Invite the bot', server_id: SERVER_ID)
   bot.register_application_command(:random, 'Get a random Yu-Gi-Oh card', server_id: SERVER_ID)
   bot.register_application_command(:search, 'Search Yu-Gi-Oh card by name', server_id: SERVER_ID) do |cmd|
-    cmd.string('name', 'input card name', required: true)
+    cmd.string('name', 'input card name', required: true,
+                                          autocomplete: true)
   end
   bot.register_application_command(:art, 'Search art Yu-Gi-Oh card by name', server_id: SERVER_ID) do |cmd|
     cmd.string('name', 'input card name', required: true)
@@ -73,7 +84,7 @@ begin
     logger.info "Command used by #{event.user.username}: /info"
   end
 
-  # /info
+  # /help
   bot.application_command(:help) do |event|
     response = General.help
     event.respond(content: response)
@@ -179,6 +190,32 @@ begin
     logger.info "Command used by #{event.user.username}: /random"
   rescue StandardError => e
     logger.error "Error occurred while processing /random command: #{e.message}"
+  end
+
+  # Autocomplete for /search <name>
+  bot.autocomplete(:name) do |event|
+    input = event.options['name'].to_s.downcase
+
+    results = []
+
+    CARD_INDEX.each do |original, lower|
+      break if results.size >= 25
+
+      results << original if lower.start_with?(input)
+    end
+
+    if results.size < 25
+      CARD_INDEX.each do |original, lower|
+        break if results.size >= 25
+        next if results.include?(original)
+
+        results << original if lower.include?(input)
+      end
+    end
+
+    results.each { |name| event.choices[name] = name }
+
+    event.respond(choices: event.choices)
   end
 
   # /search <name>
@@ -356,140 +393,8 @@ begin
 
   # /list <name>
   bot.application_command(:list) do |event|
-    input = begin
-      event.options['name']
-    rescue StandardError
-      nil
-    end
-
-    if input.nil?
-      event.respond(content: 'Use the format: /list name:<card_name>')
-      next
-    end
-
-    event.defer(ephemeral: false)
-
-    result = List.name(input, only: 'name')
-
-    if result && result['cards'].any?
-      cards = result['cards'].first(25) # Discord limit: max 25 options
-
-      event.edit_response(
-        content: "Select a card from **#{result['count']} results**:",
-        components: [
-          {
-            type: 1,
-            components: [
-              {
-                type: 3,
-                custom_id: 'card_select',
-                placeholder: 'Choose a card',
-                options: cards.map do |card|
-                  {
-                    label: card[0..99],
-                    value: card
-                  }
-                end
-              }
-            ]
-          }
-        ]
-      )
-    else
-      event.edit_response(content: "No cards found with the name #{input}")
-    end
-
-    logger.info "Command used by #{event.user.username}: /list #{input}"
-  rescue StandardError => e
-    logger.error "Error in /list: #{e.message}"
-    event.edit_response(content: "Something went wrong while fetching list for '#{input}'")
-  end
-
-  # /list search option
-  bot.interaction_create do |event|
-    data = event.interaction.data
-    next unless data && data['custom_id'] == 'card_select'
-
-    chosen_card = data['values']&.first
-    next unless chosen_card
-
-    card_data = Search.name(chosen_card)
-
-    if card_data && card_data['name']
-      card_name    = card_data['name']
-      link         = card_data['link']
-      type_info    = card_data['color']
-      ban_ocg      = card_data['ban_ocg'] || '-'
-      ban_tcg      = card_data['ban_tcg'] || '-'
-      ban_md       = card_data['ban_md'] || '-'
-      md_rarity    = card_data['md_rarity'] || '-'
-      genesys      = card_data['genesys'] || '-'
-      suffix       = card_data['suffix'] || ''
-      type         = card_data['type'] || '-'
-      race         = card_data['race'] || '-'
-      attribute    = card_data['attribute'] || '-'
-      level        = card_data['level'] || '-'
-      linkval      = card_data['linkval'] || '-'
-      linkmarkers  = card_data['linkmarkers'] || '-'
-      desc         = card_data['desc'] || '-'
-      atk          = card_data['atk'] || 0
-      def_val      = card_data['def'] || 0
-      pict         = card_data['images'][0]['image_url_cropped']
-
-      if ['Spell Card', 'Trap Card', 'Skill Card'].include?(type)
-        event.respond do |builder|
-          builder.content = ''
-          builder.add_embed do |embed|
-            embed.colour = type_info.delete_prefix('#').to_i(16)
-            embed.title  = card_name
-            embed.url    = link if link
-            embed.add_field(
-              name: '',
-              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{type}"
-            )
-            embed.add_field(name: 'Description', value: desc)
-            embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
-          end
-        end
-
-      elsif ['Link Monster'].include?(type)
-        event.edit_response do |builder|
-          builder.content = ''
-          builder.add_embed do |embed|
-            embed.colour = type_info.delete_prefix('#').to_i(16)
-            embed.title = card_name
-            embed.url   = link if link
-            embed.add_field(
-              name: '',
-              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Link Rating:** #{linkval}\n**Link Arrow:** #{Arrow.scan(linkmarkers)}"
-            )
-            embed.add_field(name: 'Description', value: desc)
-            embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
-          end
-        end
-
-      else
-        event.respond do |builder|
-          builder.content = ''
-          builder.add_embed do |embed|
-            embed.colour = type_info.delete_prefix('#').to_i(16)
-            embed.title  = card_name
-            embed.url    = link if link
-            embed.add_field(
-              name: '',
-              value: "**Limit:** **OCG:** #{Banlist.scan(ban_ocg)} / **TCG:** #{Banlist.scan(ban_tcg)} / **MD:** #{Banlist.scan(ban_md)}\n**MD Rarity:** #{md_rarity}\n**Genesys:** #{genesys}\n**Type:** #{race} #{suffix}\n**Attribute:** #{attribute}\n**Level:** #{level}"
-            )
-            embed.add_field(name: 'Description', value: desc)
-            embed.add_field(name: 'ATK', value: atk.to_s, inline: true)
-            embed.add_field(name: 'DEF', value: def_val.to_s, inline: true)
-            embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: pict) if pict
-          end
-        end
-      end
-
-    else
-      event.respond(content: "No card found with the name #{chosen_card}")
-    end
+    event.respond(content: "/list command is currently disabled")
+    logger.info "Command used by #{event.user.username}: /list"
   end
 
   # Tier List

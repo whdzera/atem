@@ -7,12 +7,6 @@
 
 A discord, Telegram, and Whatsapp bot for search yugioh card, written in ruby and javascript.
 
-APIs from Ygoprodeck
-
-### Website
-
-https://atem.whdzera.my.id/
-
 > !! READ
 > !! The Whatsapp bot version is no longer being developed.
 

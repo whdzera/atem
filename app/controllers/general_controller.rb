@@ -8,7 +8,7 @@ class General
   end
 
   def self.sourcecode
-    'https://github.com/whdzera/atem'
+    "https://github.com/whdzera/atem"
   end
 
   def self.escape_markdown(text)

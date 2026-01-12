@@ -3,19 +3,24 @@ require 'uri'
 require 'json'
 
 class Tierlist
-  API_URL   = ENV.fetch('apiurl')
-  API_TOKEN = ENV.fetch('apikey')
+  def self.api_url
+    ENV.fetch('apiurl', nil)
+  end
+
+  def self.api_token
+    ENV.fetch('apikey', nil)
+  end
 
   def self.name(tier_type)
-    return nil if API_URL.nil? || API_TOKEN.nil?
+    return nil if api_url.nil? || api_token.nil?
 
-    uri = URI.join(API_URL, "/api/yugioh/tierlist?name=#{tier_type}")
+    uri = URI.join(api_url, "/api/yugioh/tierlist?name=#{tier_type}")
 
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = (uri.scheme == 'https')
 
     request = Net::HTTP::Get.new(uri.request_uri)
-    request['Authorization'] = "Bearer #{API_TOKEN}"
+    request['Authorization'] = "Bearer #{api_token}"
 
     response = http.request(request)
 

@@ -4,6 +4,7 @@ gem 'discordrb', '3.7.2'
 gem 'dotenv', '3.1.8'
 gem 'logger', '1.7.0'
 gem 'telegram-bot-ruby', '2.1'
+gem 'ygoprodeck', '1.2.1'
 
 group :development, :test do
   gem 'rake', '13.0.0'
@@ -11,4 +12,5 @@ group :development, :test do
   gem 'rubocop', '1.80.0', require: false
   gem 'rubocop-performance', '1.26.0', require: false
   gem 'timecop', '0.9.10'
+  gem 'webmock', '~> 3.0'
 end
