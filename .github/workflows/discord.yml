@@ -9,11 +9,43 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Send message to Discord
+      - name: Send Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          curl -X POST \
+          COMMITS=$(jq -r '.commits[] | "- [`\(.id[0:7])`](\(.url)) \(.message) — *\(.author.name)*"' "$GITHUB_EVENT_PATH")
+
+          payload=$(jq -n \
+            --arg repo "$GITHUB_REPOSITORY" \
+            --arg branch "${GITHUB_REF##*/}" \
+            --arg actor "$GITHUB_ACTOR" \
+            --arg commits "$COMMITS" \
+            '{
+              embeds: [
+                {
+                  title: "New push to \($branch)",
+                  description: $commits,
+                  color: 5814783,
+                  fields: [
+                    {
+                      name: "Repository",
+                      value: $repo,
+                      inline: true
+                    },
+                    {
+                      name: "Pushed by",
+                      value: $actor,
+                      inline: true
+                    }
+                  ],
+                  footer: {
+                    text: "GitHub → Discord"
+                  }
+                }
+              ]
+            }')
+
+          curl -s -X POST \
             -H "Content-Type: application/json" \
-            -d "{\"content\":\"**New push to main**\n${{ github.event.head_commit.message }}\"}" \
-            $DISCORD_WEBHOOK
+            -d "$payload" \
+            "$DISCORD_WEBHOOK"
