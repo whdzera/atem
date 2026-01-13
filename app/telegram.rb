@@ -1,3 +1,6 @@
+$stdout.sync = true
+$stderr.sync = true
+
 require 'telegram/bot'
 require 'dotenv'
 require 'logger'

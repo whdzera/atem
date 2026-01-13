@@ -1,3 +1,6 @@
+$stdout.sync = true
+$stderr.sync = true
+
 require 'discordrb'
 require 'ygoprodeck'
 require 'logger'
